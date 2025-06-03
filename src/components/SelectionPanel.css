@@ -1,0 +1,77 @@
+.selection-panel {
+  width: 300px;
+  background-color: white;
+  border-left: 1px solid #e5e7eb;
+  padding: 1rem;
+}
+
+.selection-panel-header {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.selection-panel-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.selection-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.selection-panel-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.selection-panel-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.selection-panel-input {
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.selection-panel-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.selection-panel-text {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.selection-panel-delete {
+  margin-top: auto;
+  padding: 0.5rem 1rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.selection-panel-delete:hover {
+  background-color: #dc2626;
+}
+
+.selection-panel-delete:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #fecaca;
+} 
