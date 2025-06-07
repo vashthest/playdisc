@@ -45,17 +45,19 @@ const ObjectToken: React.FC<ObjectTokenProps> = ({
   const animationRef = useRef<Konva.Animation | null>(null);
 
   // Token dimensions
-  const tokenRadius = (isPrevious ? 0.75 : 1) * fieldWidth / 100; // Base radius in field units
-  const fontSize = fieldWidth / 100; // Font size in field units
-  const strokeWidth = fieldWidth / 200; // Stroke width in field units
-  const controlPointRadius = fieldWidth / 150; // Control point radius in field units
+  const tokenRadius = 0.8;
+  const fontSize = 0.8;
+  const dottedLineWidth = 0.2;
+  const selectedLineWidth = 0.2;
+  const previousTokenRadius = 0.4;
+  const controlPointRadius = 0.6;
 
   // Selection indicator
   const selectionRadius = tokenRadius * 1.2;
 
   // Update drag position when position changes
   useEffect(() => {
-    setDragPos(position);
+    //setDragPos(position);
   }, [position]);
 
   // Handle animation when nextPosition changes
@@ -223,8 +225,9 @@ const ObjectToken: React.FC<ObjectTokenProps> = ({
               0
             ]}
             stroke={tokenColor}
-            strokeWidth={strokeWidth}
+            strokeWidth={dottedLineWidth}
             opacity={0.6}
+            dash={[0.4,0.4]}
             listening={false}
           />
         )}
@@ -233,9 +236,9 @@ const ObjectToken: React.FC<ObjectTokenProps> = ({
         {isSelected && (
           <Circle
             radius={selectionRadius}
-            stroke={tokenColor}
-            strokeWidth={strokeWidth}
-            opacity={0.3}
+            stroke={'#FFFFFF'}
+            strokeWidth={selectedLineWidth}
+            opacity={1}
             listening={false}
           />
         )}
@@ -244,8 +247,6 @@ const ObjectToken: React.FC<ObjectTokenProps> = ({
         <Circle
           radius={tokenRadius}
           fill={tokenColor}
-          stroke={isSelected ? '#FFFFFF' : undefined}
-          strokeWidth={isSelected ? strokeWidth : undefined}
           listening={true}
         />
 
@@ -257,8 +258,8 @@ const ObjectToken: React.FC<ObjectTokenProps> = ({
             fontSize={fontSize}
             align="center"
             verticalAlign="middle"
-            offsetX={0}
-            offsetY={0}
+            offsetX={0.75}
+            offsetY={-0.75}
             width={tokenRadius * 2}
             height={tokenRadius * 2}
             listening={false}

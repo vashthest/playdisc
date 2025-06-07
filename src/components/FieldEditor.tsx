@@ -297,6 +297,7 @@ const FieldEditor = ({ play, fieldConfig, currentFrame, isReadOnly = false, onPl
           ref={stageRef}
           width={stageSize.width}
           height={stageSize.height}
+          style={{ backgroundColor: '#333333' }}
           scale={{ x: scale, y: scale }}
           onClick={(e) => {
             // Deselect when clicking empty space

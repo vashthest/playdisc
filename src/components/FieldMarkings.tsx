@@ -85,7 +85,7 @@ const FieldMarkings = ({ fieldConfig }: FieldMarkingsProps) => {
         width={width}
         height={height}
         fill="#4CAF50"
-        opacity={0.8}
+        opacity={1}
         listening={false}
       />
       
@@ -93,8 +93,8 @@ const FieldMarkings = ({ fieldConfig }: FieldMarkingsProps) => {
       <Line
         points={[0, 0, width, 0, width, height, 0, height, 0, 0]}
         stroke="#FFFFFF"
-        strokeWidth={width / 200}
-        opacity={0.9}
+        strokeWidth={0}
+        opacity={1}
         listening={false}
       />
       
@@ -104,8 +104,8 @@ const FieldMarkings = ({ fieldConfig }: FieldMarkingsProps) => {
           key={`endzone-${index}`}
           points={points}
           stroke="#FFFFFF"
-          strokeWidth={width / 200}
-          opacity={0.9}
+          strokeWidth={0.5}
+          opacity={1}
           listening={false}
         />
       ))}
@@ -115,8 +115,8 @@ const FieldMarkings = ({ fieldConfig }: FieldMarkingsProps) => {
         <Line
           points={centerLine}
           stroke="#FFFFFF"
-          strokeWidth={width / 200}
-          opacity={0.9}
+          strokeWidth={0.25}
+          opacity={0.5}
           listening={false}
         />
       )}
