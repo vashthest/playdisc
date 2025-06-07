@@ -24,10 +24,15 @@ const FieldEditor = ({ play, fieldConfig, currentFrame, isReadOnly = false, onPl
     // Remove objects from all frames
     const updatedFrames = play.frames.map(frame => {
       const updatedFrameObjects = { ...frame.objects };
-      objectIds.forEach(id => delete updatedFrameObjects[id]);
+      const updatedControlPoints = { ...(frame.controlPoints || {}) };
+      objectIds.forEach(id => {
+        delete updatedFrameObjects[id];
+        delete updatedControlPoints[id];
+      });
       return {
         ...frame,
-        objects: updatedFrameObjects
+        objects: updatedFrameObjects,
+        controlPoints: updatedControlPoints
       };
     });
 
@@ -41,7 +46,7 @@ const FieldEditor = ({ play, fieldConfig, currentFrame, isReadOnly = false, onPl
     setSelectedObjectIds([]); // Clear selection after delete
   }, [play, onPlayUpdate]);
 
-  // Handle container resize
+  // Initialize stage size
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
@@ -55,17 +60,31 @@ const FieldEditor = ({ play, fieldConfig, currentFrame, isReadOnly = false, onPl
         
         if (containerAspectRatio > fieldAspectRatio) {
           // Container is wider than needed
-          setScale(height / fieldHeight * 0.95);
+          setScale(height / fieldHeight * 0.9); // Reduce scale to 90% to add some padding
         } else {
           // Container is taller than needed
-          setScale(width / fieldWidth * 0.95);
+          setScale(width / fieldWidth * 0.9); // Reduce scale to 90% to add some padding
         }
       }
     };
 
+    // Initial update
     updateSize();
+
+    // Add resize listener
+    const resizeObserver = new ResizeObserver(updateSize);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    // Add window resize listener for good measure
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+
+    // Cleanup
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, [fieldConfig.dimensions]);
 
   // Handle keyboard events for selection
@@ -98,9 +117,25 @@ const FieldEditor = ({ play, fieldConfig, currentFrame, isReadOnly = false, onPl
   const handleDragEnd = (objectId: string, newPos: Position) => {
     if (isReadOnly || !onPlayUpdate) return;
 
-    // Ensure position is within bounds
-    const x = Math.max(0, Math.min(1, newPos.x));
-    const y = Math.max(0, Math.min(1, newPos.y));
+    // Calculate the change in position
+    const oldPos = currentFrameObjects[objectId];
+    const deltaX = newPos.x - oldPos.x;
+    const deltaY = newPos.y - oldPos.y;
+
+    // If this object is part of a multi-selection, move all selected objects
+    const objectsToMove = selectedObjectIds.includes(objectId) ? selectedObjectIds : [objectId];
+
+    const updatedFrameObjects = { ...currentFrameObjects };
+    objectsToMove.forEach(id => {
+      const currentPos = currentFrameObjects[id];
+      if (currentPos) {
+        // Apply the same delta to each selected object, ensuring they stay within bounds
+        updatedFrameObjects[id] = {
+          x: Math.max(0, Math.min(1, currentPos.x + deltaX)),
+          y: Math.max(0, Math.min(1, currentPos.y + deltaY))
+        };
+      }
+    });
 
     const updatedPlay = {
       ...play,
@@ -108,10 +143,7 @@ const FieldEditor = ({ play, fieldConfig, currentFrame, isReadOnly = false, onPl
         if (index === currentFrame) {
           return {
             ...frame,
-            objects: {
-              ...frame.objects,
-              [objectId]: { x, y }
-            }
+            objects: updatedFrameObjects
           };
         }
         return frame;
@@ -120,6 +152,99 @@ const FieldEditor = ({ play, fieldConfig, currentFrame, isReadOnly = false, onPl
 
     onPlayUpdate(updatedPlay);
   };
+
+  // Add useEffect to track frame object changes
+  useEffect(() => {
+    const currentObjects = play.frames[currentFrame]?.objects || {};
+    console.log("--------------------------------");
+    console.log("Frame objects updated:");
+    console.log("Current frame:", currentFrame);
+    console.log("Objects:", currentObjects);
+    console.log("Control points:", play.frames[currentFrame]?.controlPoints);
+  }, [currentFrame, play.frames]);
+
+  const handleControlPointChange = useCallback((objectId: string, position: { x: number; y: number } | null) => {
+    if (!onPlayUpdate) return;
+
+    console.log("--------------------------------");
+    console.log("HANDLE CONTROL POINT CHANGE:");
+    console.log("Object ID:", objectId);
+    console.log("New control point position:", position);
+
+    // Create a stable copy of the current frame
+    const frameToUpdate = play.frames[currentFrame];
+    console.log("Current frame objects:", frameToUpdate.objects);
+    console.log("Current frame control points:", frameToUpdate.controlPoints);
+
+    // Create new references for both objects and control points
+    const currentObjects = { ...frameToUpdate.objects };
+    const currentControlPoints = { ...(frameToUpdate.controlPoints || {}) };
+
+    // Update only the control points, leaving objects untouched
+    if (position === null) {
+      delete currentControlPoints[objectId];
+      console.log("Deleted control point for object:", objectId);
+    } else {
+      currentControlPoints[objectId] = position;
+      console.log("Updated control point for object:", objectId, "to:", position);
+    }
+
+    // Create the updated frame with explicit object preservation
+    const updatedFrame = {
+      ...frameToUpdate,
+      id: frameToUpdate.id, // Ensure ID is preserved
+      objects: currentObjects,  // Preserve exact object references
+      controlPoints: currentControlPoints
+    };
+
+    console.log("Updated frame:", {
+      objects: updatedFrame.objects,
+      controlPoints: updatedFrame.controlPoints
+    });
+
+    // Create updated play with the new frame
+    const updatedPlay = {
+      ...play,
+      frames: play.frames.map((frame, index) => {
+        if (index === currentFrame) {
+          return updatedFrame;
+        }
+        // For other frames, ensure their control points are preserved
+        return {
+          ...frame,
+          objects: { ...frame.objects },
+          controlPoints: { ...(frame.controlPoints || {}) }
+        };
+      })
+    };
+
+    // Verify the update before applying
+    console.log("Verifying update:");
+    console.log("Original object position:", frameToUpdate.objects[objectId]);
+    console.log("Updated object position:", updatedPlay.frames[currentFrame].objects[objectId]);
+    console.log("Updated control points:", updatedPlay.frames[currentFrame].controlPoints);
+
+    onPlayUpdate(updatedPlay);
+  }, [currentFrame, play, onPlayUpdate]);
+
+  // Add a debug effect to track frame control points
+  useEffect(() => {
+    const frame = play.frames[currentFrame];
+    console.log("Frame control points check:", {
+      frameId: frame.id,
+      controlPoints: frame.controlPoints,
+      objectPositions: frame.objects
+    });
+  }, [play.frames, currentFrame]);
+
+  // Add effect to track frame changes
+  useEffect(() => {
+    console.log("--------------------------------");
+    console.log("Frame state changed:");
+    console.log("Current frame:", currentFrame);
+    console.log("Frame objects:", play.frames[currentFrame].objects);
+    console.log("Frame control points:", play.frames[currentFrame].controlPoints);
+  }, [currentFrame, play.frames]);
 
   const handleSelect = useCallback((objectId: string) => {
     setSelectedObjectIds(prev => {
@@ -181,15 +306,20 @@ const FieldEditor = ({ play, fieldConfig, currentFrame, isReadOnly = false, onPl
           }}
         >
           <Layer>
-            <Group x={(stageSize.width / scale - fieldWidth) / 2} y={(stageSize.height / scale - fieldHeight) / 2}>
+            <Group
+              x={(stageSize.width / scale - fieldWidth) / 2}
+              y={(stageSize.height / scale - fieldHeight) / 2}
+              listening={true}
+            >
               <FieldMarkings fieldConfig={fieldConfig} />
               
-              {/* Previous frame positions (faded) */}
+              {/* Previous frame positions */}
               {currentFrame > 0 && !isReadOnly && !isAnimating && (
-                <Group opacity={0.3}>
+                <>
                   {Object.entries(play.objects).map(([id, obj]) => {
                     const prevPos = play.frames[currentFrame - 1].objects[id];
-                    if (!prevPos) return null;
+                    const currentPos = currentFrameObjects[id];
+                    if (!prevPos || !currentPos) return null;
                     
                     return (
                       <ObjectToken
@@ -198,15 +328,17 @@ const FieldEditor = ({ play, fieldConfig, currentFrame, isReadOnly = false, onPl
                         position={prevPos}
                         fieldConfig={fieldConfig}
                         isReadOnly={true}
+                        isPrevious={true}
                       />
                     );
                   })}
-                </Group>
+                </>
               )}
 
               {/* Current frame objects */}
               {Object.entries(play.objects).map(([id, obj]) => {
                 const pos = currentFrameObjects[id];
+                const prevPos = currentFrame > 0 ? play.frames[currentFrame - 1].objects[id] : undefined;
                 if (!pos) return null;
 
                 return (
@@ -214,14 +346,17 @@ const FieldEditor = ({ play, fieldConfig, currentFrame, isReadOnly = false, onPl
                     key={id}
                     object={obj}
                     position={pos}
+                    previousPosition={!isReadOnly && !isAnimating ? prevPos : undefined}
                     fieldConfig={fieldConfig}
                     isReadOnly={isReadOnly}
                     isAnimating={isAnimating}
                     nextPosition={nextFrameObjects?.[id]}
-                    onDragEnd={(newPos: Position) => handleDragEnd(id, newPos)}
+                    onDragEnd={(objectId: string, newPos: Position) => handleDragEnd(objectId, newPos)}
                     isSelected={selectedObjectIds.includes(id)}
                     onSelect={handleSelect}
                     onDeselect={handleDeselect}
+                    controlPoint={play.frames[currentFrame].controlPoints?.[id]}
+                    onControlPointChange={handleControlPointChange}
                   />
                 );
               })}

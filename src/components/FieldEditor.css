@@ -3,14 +3,20 @@
   height: 100%;
   width: 100%;
   background-color: #f3f4f6;
+  overflow: hidden;
 }
 
 .field-editor-main {
   flex: 1;
   position: relative;
   min-width: 0; /* Prevent flex item from overflowing */
+  min-height: 0; /* Prevent flex item from overflowing */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .field-editor-container canvas {
   display: block;
+  touch-action: none; /* Prevent touch scrolling on mobile */
 } 

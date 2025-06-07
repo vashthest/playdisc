@@ -193,6 +193,9 @@ const PlayEditorPage = () => {
       objects: {
         ...frame.objects,
         [newObject.id]: newObject.position
+      },
+      controlPoints: {
+        ...frame.controlPoints
       }
     }));
 
@@ -214,7 +217,8 @@ const PlayEditorPage = () => {
 
     const newFrame: Frame = {
       id: uuidv4(),
-      objects: { ...play.frames[currentFrame].objects }
+      objects: { ...play.frames[currentFrame].objects },
+      controlPoints: { ...play.frames[currentFrame].controlPoints }  // Copy control points from current frame
     };
 
     const updatedPlay = {

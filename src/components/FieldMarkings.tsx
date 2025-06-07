@@ -80,31 +80,44 @@ const FieldMarkings = ({ fieldConfig }: FieldMarkingsProps) => {
 
   return (
     <>
-      {/* Main field outline */}
+      {/* Background rect that will pass through click events */}
       <Rect
         width={width}
         height={height}
-        stroke="#ffffff"
-        strokeWidth={0.2}
-        fill="#2F855A" // Green field color
+        fill="#4CAF50"
+        opacity={0.8}
+        listening={false}
       />
-
+      
+      {/* Field lines */}
+      <Line
+        points={[0, 0, width, 0, width, height, 0, height, 0, 0]}
+        stroke="#FFFFFF"
+        strokeWidth={width / 200}
+        opacity={0.9}
+        listening={false}
+      />
+      
       {/* End zones */}
       {endZoneLines.map((points, index) => (
         <Line
           key={`endzone-${index}`}
           points={points}
-          stroke="#ffffff"
-          strokeWidth={0.2}
+          stroke="#FFFFFF"
+          strokeWidth={width / 200}
+          opacity={0.9}
+          listening={false}
         />
       ))}
-
+      
       {/* Center line */}
       {centerLine && (
         <Line
           points={centerLine}
-          stroke="#ffffff"
-          strokeWidth={0.2}
+          stroke="#FFFFFF"
+          strokeWidth={width / 200}
+          opacity={0.9}
+          listening={false}
         />
       )}
     </>

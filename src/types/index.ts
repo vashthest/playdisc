@@ -15,6 +15,7 @@ export interface ObjectToken {
 export interface Frame {
   id: string;
   objects: Record<string, Position>;  // objectId -> position mapping
+  controlPoints?: Record<string, Position>;  // objectId -> control point mapping
 }
 
 export interface Reply {

@@ -65,12 +65,16 @@ export interface ObjectTokenProps {
   position: { x: number; y: number };
   fieldConfig: FieldConfiguration;
   isReadOnly?: boolean;
-  onDragEnd?: (position: { x: number; y: number }) => void;
+  onDragEnd?: (objectId: string, position: { x: number; y: number }) => void;
   isAnimating?: boolean;
   nextPosition?: { x: number; y: number };
   isSelected?: boolean;
   onSelect?: (objectId: string) => void;
   onDeselect?: (objectId: string) => void;
+  previousPosition?: { x: number; y: number };
+  isPrevious?: boolean;
+  onControlPointChange?: (objectId: string, position: { x: number; y: number } | null) => void;
+  controlPoint?: { x: number; y: number } | null;
 }
 
 export interface FieldMarkingsProps {
